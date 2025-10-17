@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Healthcare Symptom Checker</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+    textarea { width: 100%; height: 120px; margin-bottom: 10px; }
+    button { padding: 10px 16px; cursor: pointer; }
+    .result { margin-top: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 8px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Healthcare Symptom Checker</h1>
+  <p><em>Educational purpose only — not medical advice.</em></p>
+
+  <textarea id="symptoms" placeholder="Describe your symptoms here..."></textarea><br>
+  <button onclick="checkSymptoms()">Check Symptoms</button>
+
+  <div id="output" class="result"></div>
+
+  <script>
+    async function checkSymptoms() {
+      const symptoms = document.getElementById("symptoms").value.trim();
+      const output = document.getElementById("output");
+
+      if (!symptoms) {
+        output.innerHTML = "<b>Please enter your symptoms first.</b>";
+        return;
+      }
+
+      output.innerHTML = "Checking...";
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/symptom-check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ symptoms }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Error");
+
+        let html = `<h3>Probable Conditions & Recommendations</h3><p>${data.probable_conditions}</p>`;
+        html += `<p style='color:red'><b>Disclaimer:</b> ${data.disclaimer}</p>`;
+        output.innerHTML = html;
+      } catch (err) {
+        output.innerHTML = `<b>Error:</b> ${err.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
